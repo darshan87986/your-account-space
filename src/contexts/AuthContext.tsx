@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -62,26 +62,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
+      // First sign up with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { name } // Store name in user metadata
+        }
       });
       
       if (error) {
         return { error, data: null };
       }
       
-      // If signup successful, add the name to the users table
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([{ id: data.user.id, name, email }]);
-        
-        if (profileError) {
-          return { error: profileError, data: null };
-        }
-        
-        toast.success("Account created successfully!");
+        // We'll let Supabase handle the user profile instead of manually inserting into users table
+        toast.success("Account created successfully! Please check your email for verification.");
         navigate("/login");
       }
       

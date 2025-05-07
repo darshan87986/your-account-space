@@ -95,7 +95,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (error) {
-        toast.error(error.message);
+        // Show specific error message for invalid login credentials
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error("Invalid email or password. Please try again.");
+        } else {
+          toast.error(error.message);
+        }
         return { error, data: null };
       }
       
@@ -103,6 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       navigate("/");
       return { data, error: null };
     } catch (error) {
+      toast.error("An unexpected error occurred during login");
       return { error: error as Error, data: null };
     }
   };

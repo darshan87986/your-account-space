@@ -28,6 +28,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -39,8 +40,12 @@ const Login = () => {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
+    setAuthError(null);
     try {
-      await signIn(values.email, values.password);
+      const { error } = await signIn(values.email, values.password);
+      if (error) {
+        setAuthError(error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +61,11 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {authError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+              {authError}
+            </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField

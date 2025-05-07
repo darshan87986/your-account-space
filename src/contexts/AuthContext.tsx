@@ -76,7 +76,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       if (data.user) {
-        // We'll let Supabase handle the user profile instead of manually inserting into users table
+        // Also insert the user data into the users table
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id,
+            email: email,
+            name: name,
+            // Don't store the actual password in the users table - Supabase Auth handles this securely
+            password: 'MANAGED_BY_SUPABASE_AUTH' // This is just a placeholder
+          });
+          
+        if (insertError) {
+          console.error('Error inserting user into users table:', insertError);
+          // We won't return an error here since the auth signup succeeded
+        }
+        
         toast.success("Account created successfully! Please check your email for verification.");
         navigate("/login");
       }

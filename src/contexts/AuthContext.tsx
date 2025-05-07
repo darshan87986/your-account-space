@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from "@supabase/supabase-js";
+import { Session, User, Provider } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -17,6 +17,7 @@ type AuthContextType = {
     error: Error | null;
     data: any;
   }>;
+  signInWithSocialProvider: (provider: Provider) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -135,6 +136,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signInWithSocialProvider = async (provider: Provider) => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin, // Redirect to home page after login
+        },
+      });
+      
+      if (error) {
+        toast.error(`Login with ${provider} failed: ${error.message}`);
+      }
+    } catch (error) {
+      toast.error(`An unexpected error occurred during ${provider} login`);
+      console.error(`${provider} login error:`, error);
+    }
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -147,7 +166,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, isLoading, signUp, signIn, signOut }}
+      value={{ 
+        user, 
+        session, 
+        isLoading, 
+        signUp, 
+        signIn, 
+        signInWithSocialProvider, 
+        signOut 
+      }}
     >
       {children}
     </AuthContext.Provider>

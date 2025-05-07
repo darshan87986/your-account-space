@@ -72,10 +72,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (error) {
+        toast.error(error.message);
         return { error, data: null };
       }
       
       if (data.user) {
+        console.log("User created in auth, now inserting into users table:", data.user.id);
+        
         // Also insert the user data into the users table
         const { error: insertError } = await supabase
           .from('users')
@@ -89,15 +92,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
         if (insertError) {
           console.error('Error inserting user into users table:', insertError);
+          toast.error(`Account created but profile setup failed: ${insertError.message}`);
           // We won't return an error here since the auth signup succeeded
+        } else {
+          console.log("Successfully inserted user into users table");
+          toast.success("Account created successfully! Please check your email for verification.");
+          navigate("/login");
         }
-        
-        toast.success("Account created successfully! Please check your email for verification.");
-        navigate("/login");
       }
       
       return { data, error: null };
     } catch (error) {
+      console.error('Signup error:', error);
+      toast.error(`Registration failed: ${(error as Error).message}`);
       return { error: error as Error, data: null };
     }
   };

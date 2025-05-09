@@ -138,15 +138,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signInWithSocialProvider = async (provider: Provider) => {
     try {
+      // Get the current URL (without parameters and hash)
+      const redirectTo = window.location.origin;
+      console.log("Using redirect URL:", redirectTo);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin, // Redirect to home page after login
+          redirectTo: redirectTo, // Use current origin as redirect URL
         },
       });
       
       if (error) {
         toast.error(`Login with ${provider} failed: ${error.message}`);
+        console.error(`${provider} login error:`, error);
       }
     } catch (error) {
       toast.error(`An unexpected error occurred during ${provider} login`);
